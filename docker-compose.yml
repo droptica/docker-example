@@ -14,7 +14,7 @@ services:
     volumes:
       - .:/app
     environment:
-      - COMPOSER_PATH=/app/app
+      - COMPOSER_PATH=/app/drupal
       - PHP_MEMORY_LIMIT=-1
       - DRUSH_OPTIONS_URI=http://${D_HOST}
 
