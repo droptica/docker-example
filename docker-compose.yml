@@ -33,6 +33,14 @@ services:
       MYSQL_USER:     ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASS}
 
+  gulp:
+    image: droptica/gulp:${D_NODE_VERSION}
+    env_file:
+      - .env
+    volumes:
+      - ./drupal:/app
+    working_dir: /app
+
 networks:
   default:
   traefik:
