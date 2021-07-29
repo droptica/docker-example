@@ -4,21 +4,6 @@ volumes:
   mysql:
 
 services:
-  php-dev:
-    image: droptica/php-cli:${D_PHP_VERSION}
-    depends_on:
-      - mysql
-    working_dir: /app/drupal
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-      - ./ansible:/etc/drupal
-    environment:
-      - COMPOSER_PATH=/app/app
-      - PHP_MEMORY_LIMIT=-1
-      - DRUSH_OPTIONS_URI=http://${D_HOST}
-
   apache:
     image: droptica/php-apache:${D_PHP_VERSION}
     depends_on:
@@ -37,14 +22,6 @@ services:
       - traefik
       - default
 
-  gulp:
-    image: droptica/gulp:${D_NODE_VERSION}
-    env_file:
-      - .env
-    volumes:
-      - ./drupal:/app
-    working_dir: /app
-
   mysql:
     image: mysql:${MYSQL_VERSION}
     volumes:
@@ -55,27 +32,6 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER:     ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASS}
-
-  pma:
-    image: nazarpc/phpmyadmin
-    depends_on:
-      - mysql
-    labels:
-      - "traefik.frontend.rule=Host:pma.${D_HOST}"
-      - "traefik.docker.network=traefik"
-    networks:
-      - traefik
-      - default
-
-  mailcatcher:
-    image: droptica/mailcatcher
-    labels:
-      - "traefik.frontend.rule=Host:mails.${D_HOST}"
-      - "traefik.docker.network=traefik"
-    networks:
-      - traefik
-      - default
-
 
 networks:
   default:
