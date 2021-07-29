@@ -1,0 +1,22 @@
+version: '3.5'
+
+services:
+  reverse-proxy:
+    restart: always
+    image: traefik:1.7
+    command: --api --docker # Enables the web UI and tells Traefik to listen to docker
+    ports:
+      - 80:80     # The HTTP port
+      - 443:443
+      - 8080:8080 # The Web UI (enabled by --api)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
+      - ./config/traefik.prod.toml:/etc/traefik/traefik.toml
+      - ./config/ssl:/etc/traefik/ssl
+      - ./certs:/etc/acme
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    name: traefik
