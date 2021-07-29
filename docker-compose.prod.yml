@@ -4,32 +4,21 @@ volumes:
   mysql:
 
 services:
-  php-dev:
-    image: droptica/php-cli:${D_PHP_VERSION}
-    depends_on:
-      - mysql
-    working_dir: /app/drupal
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-    environment:
-      - COMPOSER_PATH=/app/drupal
-      - PHP_MEMORY_LIMIT=-1
-      - DRUSH_OPTIONS_URI=http://${D_HOST}
-
   apache:
-    image: droptica/php-apache:${D_PHP_VERSION}
+    build:
+      dockerfile: Dockerfile.apache
+      context: .
     depends_on:
       - mysql
     volumes:
-      - ./drupal:/var/www
+      - ./files:/var/www/web/sites/default/files
     labels:
       - "traefik.frontend.rule=Host:${D_HOST}"
       - "traefik.docker.network=traefik"
     working_dir: /var/www/web
     environment:
       - DOCUMENT_ROOT=/var/www/web
+      - DRUSH_OPTIONS_URI=http://${D_HOST}
     env_file:
       - .env
     networks:
@@ -40,6 +29,7 @@ services:
     image: mysql:${MYSQL_VERSION}
     volumes:
       - mysql:/var/lib/mysql
+      - ./configs/mysql/dev-my.cnf:/etc/mysql/conf.d/custom.cnf:ro
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
       MYSQL_DATABASE: ${DB_NAME}
@@ -57,22 +47,6 @@ services:
       - traefik
       - default
 
-  mailcatcher:
-    image: droptica/mailcatcher
-    labels:
-      - "traefik.frontend.rule=Host:mails.${D_HOST}"
-      - "traefik.docker.network=traefik"
-    networks:
-      - traefik
-      - default
-
-  gulp:
-    image: droptica/gulp:${D_NODE_VERSION}
-    env_file:
-      - .env
-    volumes:
-      - ./drupal:/app
-    working_dir: /app
 
 networks:
   default:
