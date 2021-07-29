@@ -19,11 +19,13 @@ services:
       - DRUSH_OPTIONS_URI=http://${D_HOST}
 
   apache:
-    image: droptica/php-apache:${D_PHP_VERSION}
+    build:
+      dockerfile: Dockerfile.apache
+      context: .
     depends_on:
       - mysql
     volumes:
-      - ./drupal:/var/www
+      - ./files:/var/www/web/sites/default/files
     labels:
       - "traefik.frontend.rule=Host:${D_HOST}"
       - "traefik.docker.network=traefik"

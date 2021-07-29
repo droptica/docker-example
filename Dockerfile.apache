@@ -1,0 +1,65 @@
+ARG PHP_VERSION=7.4
+
+# https://hub.docker.com/_/composer
+ARG COMPOSER_VERSION=2.1.3
+
+ARG D_NODE_VERSION=13
+
+#################################################################################
+# pin version
+#################################################################################
+FROM composer:$COMPOSER_VERSION AS composer
+
+#################################################################################
+# Base apache image
+#################################################################################
+FROM droptica/php-apache:$PHP_VERSION as php
+
+#################################################################################
+# Composer install
+#################################################################################
+FROM php as builder
+# copy composer.phar from official image
+COPY --from=composer --chown=root:root /usr/bin/composer /usr/bin/
+
+RUN apt update && apt install git -y
+
+# Copy files into container
+COPY ./drupal /var/www/
+COPY ./configs/settings.php /var/www/web/sites/default/settings.php
+WORKDIR /var/www
+RUN set -xe \
+        && composer install --no-dev --no-suggest --no-interaction --prefer-dist --optimize-autoloader
+#################################################################################
+# Style compoile
+#################################################################################
+FROM droptica/gulp:$D_NODE_VERSION as node
+
+COPY --from=builder /var/www /var/www
+
+ENV THEME_DIR /var/www/web/profiles/contrib/droopler/themes/custom/droopler_theme
+RUN cd ${THEME_DIR} && npm install && gulp clean && gulp dist
+ENV SUBTHEME_DIR /var/www/web/themes/custom/droopler_subtheme
+RUN cd ${SUBTHEME_DIR} && npm install && gulp clean && gulp dist
+
+RUN rm -rf "${THEME_DIR}/node_modules" "${THEME_DIR}/package-lock.json" "${SUBTHEME_DIR}/node_modules" "${SUBTHEME_DIR}/package-lock.json"
+
+#################################################################################
+# Prod image
+#################################################################################
+FROM php as prod
+ARG USER_ID=1000
+
+ENV DOCUMENT_ROOT /var/www/web
+
+ENV SETUID=$USER_ID
+
+COPY --from=node --chown=$SETUID:$SETUID /var/www/ /var/www/
+
+RUN ln -s /var/www/vendor/bin/drush /usr/bin/drush
+
+# Cleaning
+RUN apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+WORKDIR /var/www
