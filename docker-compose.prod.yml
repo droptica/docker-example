@@ -4,20 +4,6 @@ volumes:
   mysql:
 
 services:
-  php-dev:
-    image: droptica/php-cli:${D_PHP_VERSION}
-    depends_on:
-      - mysql
-    working_dir: /app/drupal
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-    environment:
-      - COMPOSER_PATH=/app/drupal
-      - PHP_MEMORY_LIMIT=-1
-      - DRUSH_OPTIONS_URI=http://${D_HOST}
-
   apache:
     build:
       dockerfile: Dockerfile.apache
@@ -32,6 +18,7 @@ services:
     working_dir: /var/www/web
     environment:
       - DOCUMENT_ROOT=/var/www/web
+      - DRUSH_OPTIONS_URI=http://${D_HOST}
     env_file:
       - .env
     networks:
@@ -60,13 +47,6 @@ services:
       - traefik
       - default
 
-  gulp:
-    image: droptica/gulp:${D_NODE_VERSION}
-    env_file:
-      - .env
-    volumes:
-      - ./drupal:/app
-    working_dir: /app
 
 networks:
   default:
