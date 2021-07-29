@@ -4,6 +4,21 @@ volumes:
   mysql:
 
 services:
+  php-dev:
+    image: droptica/php-cli:${D_PHP_VERSION}
+    depends_on:
+      - mysql
+    working_dir: /app/drupal
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./ansible:/etc/drupal
+    environment:
+      - COMPOSER_PATH=/app/app
+      - PHP_MEMORY_LIMIT=-1
+      - DRUSH_OPTIONS_URI=http://${D_HOST}
+
   apache:
     image: droptica/php-apache:${D_PHP_VERSION}
     depends_on:
