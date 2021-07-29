@@ -33,6 +33,26 @@ services:
       MYSQL_USER:     ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASS}
 
+  pma:
+    image: nazarpc/phpmyadmin
+    depends_on:
+      - mysql
+    labels:
+      - "traefik.frontend.rule=Host:pma.${D_HOST}"
+      - "traefik.docker.network=traefik"
+    networks:
+      - traefik
+      - default
+
+  mailcatcher:
+    image: droptica/mailcatcher
+    labels:
+      - "traefik.frontend.rule=Host:mails.${D_HOST}"
+      - "traefik.docker.network=traefik"
+    networks:
+      - traefik
+      - default
+
   gulp:
     image: droptica/gulp:${D_NODE_VERSION}
     env_file:
